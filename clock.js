@@ -1,3 +1,64 @@
+/* svg */
+var now;
+var alarms = []
+var snoozeDuration = 5; //minutes
+var sec, min, hour;
+
+(function main(){
+
+    sec = document.getElementById('sec');
+    min = document.getElementById('min');
+    hour = document.getElementById('hour');
+
+    alarms.push({time: '12:29', desc: 'facebook live'});
+    alarms.push({time: '12:13', desc: 'test'});
+    alarms.push({time: '12:25', desc: 'test'});
+
+    setInterval(function(){
+        now = moment().format('h:mm:s.S A');
+        window.document.title = now;
+        document.getElementById('clockDigital').innerText = now;
+        checkAlarms();
+        drawClock();
+    }, 50);
+})();
+
+function checkAlarms(){
+    for (var i = 0; i < alarms.length; i++){
+        var alarm = alarms[i];        
+        if (alarm.date){ //remove old alarms (before today)
+            if (moment(alarm.date).isBefore(moment().format("MM-DD-YYYY")) ||
+                moment(alarm.date).isBefore(moment().format("YYYY-MM-DD"))
+            ){
+                alarms.splice(i, 1);
+            }
+        }
+        var now = moment().format('h:mm');        
+        if (alarm.time !== now){ continue; }
+        var message = alarm.time + ": " + alarm.desc + "\n\n Cancel will snooze for " + snoozeDuration + " minutes";
+        if(!confirm(message)){
+            //snooze for 5 minutes
+            var newTime = moment().minute() + 5;
+            alarms.splice(i, 1);
+            alarms.push({ time: newTime, desc: alarm.desc })
+            continue;
+        };        
+        alarms.splice(i, 1);
+    }
+}
+
+function drawClock(){
+    function r(el, deg) {
+        el.setAttribute('transform', 'rotate('+ deg +' 50 50)')
+    }    
+    var d = moment();
+    r(sec, 6*d.second());
+    r(min, 6*d.minute());
+    r(hour, 30*(d.hour()%12) + d.minute()/2);
+}
+
+/* canvas
+
 var now;
 var alarms = []
 var snoozeDuration = 5; //minutes
@@ -107,6 +168,7 @@ function drawTime(ctx, radius){
     //minute=(minute*Math.PI/30)+(second*Math.PI/(30*60));
     drawHand(ctx, minute, radius*0.8, radius*0.07);    
     */
+    /*
 }
 
 function drawHand(ctx, angle, length, width) {
@@ -133,4 +195,4 @@ function degreeToRadians(degree){
     //1 degree = Math.PI / 180 radians (0.01745329251994329576923690768489)
     var radians = parseFloat(degree) *  (Math.PI / 180.0);
     return radians;
-}
+} */
