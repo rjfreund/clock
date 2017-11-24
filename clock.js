@@ -85,8 +85,7 @@ function drawNumbers(ctx, radius) {
     ctx.fillText(i.toString(), xcntr, ycntr);
     ctx.rotate(angle);
     ctx.translate(0, radius*0.85);
-    ctx.rotate(-angle);
-    console.log(angle * 2 * Math.PI);
+    ctx.rotate(-angle);    
   }
 }
 
@@ -97,7 +96,7 @@ function drawTime(ctx, radius){
     var second = now.second();
 
     // second hand
-    var secondHandAngle = (second * 2 * Math.PI / 60);
+    var secondHandAngle = degreeToRadians(second * 6);
     drawHand(ctx, secondHandAngle, radius*0.9, radius*0.02);
 
     /*
@@ -111,12 +110,27 @@ function drawTime(ctx, radius){
 }
 
 function drawHand(ctx, angle, length, width) {
+    console.log("radius: ", radius, "length: ", length);
+    
+    ctx.resetTransform();
     ctx.beginPath();
     ctx.lineWidth = width;
     ctx.lineCap = "round";
     ctx.moveTo(xcntr,ycntr);
     ctx.rotate(angle);
-    ctx.lineTo(xcntr, -length);
+    ctx.lineTo(xcntr, length);
     ctx.stroke();
     ctx.rotate(-angle);
+}
+
+function radianToDegrees(radian){
+    //1 radian = 180 / Math.PI degrees (57.295779513082320876798154814105) 
+    var degree = radian * 180.0 / Math.PI;
+    return degree;
+}
+
+function degreeToRadians(degree){
+    //1 degree = Math.PI / 180 radians (0.01745329251994329576923690768489)
+    var radians = parseFloat(degree) *  (Math.PI / 180.0);
+    return radians;
 }
