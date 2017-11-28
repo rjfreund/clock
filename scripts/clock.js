@@ -16,14 +16,8 @@ define(function(require){
         var ycntr;
         var snoozeDuration = 5; //5 minutes
 
-    function start(){
-        ticker = setInterval(function updateTimes(){  
-            checkAlarms();
-            for(var i = 0; i < textDestinations.length; i++){
-                var dest = textDestinations[i];
-                dest.target[dest.attr] = getTime();
-            }                   
-        }, 16.75);
+    function start(){       
+        setText(); //changed set interval to this because set interval was stopping after a while for some reason(?)
         for(var k = 0; k < displayDestinations.length; k++){              
             ctx = displayDestinations[k].getContext("2d");
             xcntr = (displayDestinations[k].width / 2)
@@ -32,8 +26,19 @@ define(function(require){
         }         
     };
     function stop(){
-      clearInterval(ticker);
+      clearTimeout(ticker);
     };
+
+    function setText(){
+        ticker = setTimeout(function updateTimes(){  
+            checkAlarms();
+            for(var i = 0; i < textDestinations.length; i++){
+                var dest = textDestinations[i];
+                dest.target[dest.attr] = getTime();
+            }
+            setText();                   
+        }, 16.75);
+    }
 
     function checkAlarms(){
         for (var i = 0; i < alarms.length; i++){
