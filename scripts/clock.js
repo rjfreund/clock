@@ -45,36 +45,48 @@ define(function(require){
             dest.target[dest.attr] = getTime();
         }
         for(var k = 0; k < displayDestinations.length; k++){              
-            ctx = displayDestinations[k].getContext("2d");     
-            var container = document.getElementById("container");                   
-            var clockText = document.getElementById("clockText");
-            var allExceptCanvas = (window.innerHeight - ctx.canvas.height)
-            var canvasMinHeight = 250 - allExceptCanvas;
-            console.log("canvas.height: ", ctx.canvas.height, "clockTextHeight: ", clockText.clientHeight, "minHeight - clockTextHeight: ", 250 - clockText.clientHeight);
-            if (window.innerHeight <= canvasMinHeight){ //min height
-                ctx.canvas.height = ctx.canvas.width;
-                setVertScroll(container);
-            } else if (ctx.canvas.width >= window.innerWidth){
-                ctx.canvas.height = allExceptCanvas;
-                ctx.canvas.width = ctx.canvas.height;
-            } else if (ctx.canvas.height >= (window.innerHeight - clockText.clientHeight //max height: 100%  
-                && ctx.canvas.height < window.innerWidth
-            )){ 
-                ctx.canvas.height = (window.innerHeight - clockText.clientHeight);
-                ctx.canvas.width = ctx.canvas.height;
-                setNoScroll(container);
-            } else if (ctx.canvas.height >= window.innerWidth){ //max-width: 100%
-                ctx.canvas.height = window.innerWidth;
-                ctx.canvas.width = ctx.canvas.height;
-                setNoScroll(container);
-            } else { //scale to screen
-                ctx.canvas.height = (window.innerHeight - clockText.clientHeight); 
-                ctx.canvas.width = ctx.canvas.height;
-                setNoScroll(container);
-            }            
+            ctx = displayDestinations[k].getContext("2d");                             
+            setCanvasDim(ctx);
             drawClock(ctx);
             drawToFavicon(ctx);
         }
+    }
+
+    function setCanvasDim(ctx){
+        var container = document.getElementById("container");                   
+        var clockText = document.getElementById("clockText");
+        var allExceptCanvas = (document.body.clientHeight - ctx.canvas.height)
+        var containerMinHeight = 250;
+        var containerMaxHeight = 400;
+        if (window.innerHeight >= containerMaxHeight){ //set max height in px
+            ctx.canvas.height = containerMaxHeight - allExceptCanvas;
+            ctx.canvas.height -= 10; //to prevent scrollbar flashing
+            ctx.canvas.width = ctx.canvas.height;
+        } else if (window.innerHeight <= containerMinHeight){ //set min height in px
+            ctx.canvas.height = ctx.canvas.width;
+            setVertScroll(container);
+        } else if (ctx.canvas.width >= window.innerWidth){ //prevent canvas from being wider than window
+            ctx.canvas.height = allExceptCanvas;
+            ctx.canvas.height -= 10; //to prevent scrollbar flashing
+            ctx.canvas.width = ctx.canvas.height;
+        } else if (ctx.canvas.height >= (window.innerHeight - clockText.clientHeight //max-height: 100%  
+            && ctx.canvas.height < window.innerWidth
+        )){ 
+            ctx.canvas.height = (window.innerHeight - clockText.clientHeight);
+            ctx.canvas.height -= 10; //to prevent scrollbar flashing
+            ctx.canvas.width = ctx.canvas.height;
+            setNoScroll(container);
+        } else if (ctx.canvas.height >= window.innerWidth){ //max-width: 100%
+            ctx.canvas.height = window.innerWidth;
+            ctx.canvas.height -= 10; //to prevent scrollbar flashing
+            ctx.canvas.width = ctx.canvas.height;
+            setNoScroll(container);
+        } else { //scale to screen
+            ctx.canvas.height = (window.innerHeight - clockText.clientHeight); 
+            ctx.canvas.height -= 10; //to prevent scrollbar flashing
+            ctx.canvas.width = ctx.canvas.height;
+            setNoScroll(container);
+        }          
     }
 
     function setNoScroll(element){
