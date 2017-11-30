@@ -4,15 +4,16 @@ define(function(require){
 
     return function Clock(){
         var framesPerSecond = 60;            
-        var alarms = [];
+        var degreesPerSecond = 360/60;
+        var degreesPerMilli = 360/(60 * 1000); //1000 mili per second
+        var alarms = [];        
         var timeout = null;
         var isTimeoutMode;
         var textDestinations = [];
         var displayDestinations = [];        
-        var xcntr;
-        var ycntr;
-        var snoozeDuration = 5; //5 minutes
-        var outerRingWidth;
+        var snoozeDuration = 5; //5 minutes               
+        var xCenter;
+        var yCenter; 
 
     function start(){
         if (isTimeoutMode){
@@ -36,29 +37,60 @@ define(function(require){
       clearTimeout(timeout);
     };
 
-    function doWork(){
-        checkAlarms();
+    //TODO: rename this thing to something better
+    function doWork(){ //not really sure what to name this?
+        checkAlarms();        
         for(var i = 0; i < textDestinations.length; i++){
             var dest = textDestinations[i];
             dest.target[dest.attr] = getTime();
         }
         for(var k = 0; k < displayDestinations.length; k++){              
-            ctx = displayDestinations[k].getContext("2d");
-            xcntr = (displayDestinations[k].width / 2)
-            ycntr = (displayDestinations[k].height / 2);
+            ctx = displayDestinations[k].getContext("2d");     
+            var container = document.getElementById("container");                   
+            var clockText = document.getElementById("clockText");
+            var allExceptCanvas = (window.innerHeight - ctx.canvas.height)
+            var canvasMinHeight = 250 - allExceptCanvas;
+            console.log("canvas.height: ", ctx.canvas.height, "clockTextHeight: ", clockText.clientHeight, "minHeight - clockTextHeight: ", 250 - clockText.clientHeight);
+            if (window.innerHeight <= canvasMinHeight){ //min height
+                ctx.canvas.height = ctx.canvas.width;
+                setVertScroll(container);
+            } else if (ctx.canvas.width >= window.innerWidth){
+                ctx.canvas.height = allExceptCanvas;
+                ctx.canvas.width = ctx.canvas.height;
+            } else if (ctx.canvas.height >= (window.innerHeight - clockText.clientHeight //max height: 100%  
+                && ctx.canvas.height < window.innerWidth
+            )){ 
+                ctx.canvas.height = (window.innerHeight - clockText.clientHeight);
+                ctx.canvas.width = ctx.canvas.height;
+                setNoScroll(container);
+            } else if (ctx.canvas.height >= window.innerWidth){ //max-width: 100%
+                ctx.canvas.height = window.innerWidth;
+                ctx.canvas.width = ctx.canvas.height;
+                setNoScroll(container);
+            } else { //scale to screen
+                ctx.canvas.height = (window.innerHeight - clockText.clientHeight); 
+                ctx.canvas.width = ctx.canvas.height;
+                setNoScroll(container);
+            }            
             drawClock(ctx);
             drawToFavicon(ctx);
         }
     }
+
+    function setNoScroll(element){
+        element.className = "noScroll";
+    }
+
+    function setVertScroll(element){
+        element.className = "vertScroll";
+    }        
 
     function startTimeoutMode(){
         timeout = setTimeout(function updateTimes(){  
             doWork();
             startTimeoutMode();                   
         }, 16.75);
-    }
-
-    
+    }    
 
     function startReqAnimMode(prevTimeInMs){
         if (isTimeoutMode){            
@@ -116,22 +148,23 @@ define(function(require){
     function removeAlarm(i){ alarms.splice(i, 1); };
     function getTime(){ return moment().format('h:mm:s.S A'); };    
 
-    function drawClock(ctx) {
-        //var radius = (canvas.height / 2) * 0.80;
-        outerRingWidth = (canvas.height / 2)*0.1;
-        var radius = (canvas.height / 2) - outerRingWidth;
-        drawFace(ctx, radius);
+    function drawClock(ctx) {        
+        xCenter = ctx.canvas.width/2;
+        yCenter = ctx.canvas.height/2;
+        var outerRingWidth = (ctx.canvas.height/2)*0.1;
+        var radius = (ctx.canvas.height - outerRingWidth)/2;
+        drawFace(ctx, radius, outerRingWidth);
         drawNumbers(ctx, radius);
         drawTime(ctx, radius);                 
     }
 
-    function drawFace(ctx, radius) {
+    function drawFace(ctx, radius, outerRingWidth) {
         var grad;
         ctx.beginPath();        
-        ctx.arc(xcntr, ycntr, radius, 0, 2*Math.PI);  
+        ctx.arc(xCenter, yCenter, radius, 0, 2*Math.PI);  
         ctx.fillStyle = 'white';
         ctx.fill();  
-        grad = ctx.createRadialGradient(xcntr,ycntr,radius*0.30, xcntr,ycntr,radius*0.4);  
+        grad = ctx.createRadialGradient(xCenter,yCenter,radius*0.30, xCenter,yCenter,radius*0.4);  
         grad.addColorStop(0, '#333');
         grad.addColorStop(0.5, 'white');
         grad.addColorStop(1, '#333');
@@ -139,7 +172,7 @@ define(function(require){
         ctx.lineWidth = radius*0.05;
         ctx.stroke();
         ctx.beginPath();
-        ctx.arc(xcntr, ycntr, outerRingWidth, 0, 2*Math.PI);
+        ctx.arc(xCenter, yCenter, outerRingWidth, 0, 2*Math.PI);
         ctx.fillStyle = '#333';
         ctx.fill();    
     }
@@ -154,58 +187,57 @@ define(function(require){
             var angle = degreeToRadians(i * 30 - 90); //have to subtract 90 degrees because the usual 0,0 starts at the 3 o'clock position stead of 12
             var degrees = radianToDegrees(angle);
             var length = radius*0.85;                                                                    
-            var xPoint = xcntr + (length * Math.cos(angle));//get dest x point from orig x = 0
-            var yPoint = ycntr + (length * Math.sin(angle));//get dest y point from orig y = 0
+            var xPoint = xCenter + (length * Math.cos(angle));//get dest x point from orig x = 0
+            var yPoint = yCenter + (length * Math.sin(angle));//get dest y point from orig y = 0
             ctx.fillText(i.toString(), xPoint, yPoint);                                    
         }
     }
 
     function drawTime(ctx, radius){
-        var now = moment();
-        var hour = now.hour() <= 12 ? now.hour() : now.hour() - 12;
-        var minute = now.minute();
-        var second = now.second();                          
-        var ms = now.millisecond(); //0.000
-        var degreesPerSecond = 360/60;
-        var degreesPerMilli = 360/(60 * 1000); //1000 mili per second
-        var degreesPerMinute = 360/60;    
-        var degreesPerHour = 360/12;
-        var minutesSinceTwelve = 60 * hour + minute;
+        var now = moment();                                   
+        drawSecondHand(ctx, radius, now);
+        drawMinuteHand(ctx, radius, now);
+        drawHourHand(ctx, radius, now);        
+    }
 
-        // second hand
+    function drawSecondHand(ctx, radius, now){
+        var second = now.second();                          
+        var ms = now.millisecond(); //0.000            
+
         var secondHandAngle = degreeToRadians(
             second * degreesPerSecond + 
             ms * degreesPerMilli
-        ); //1000 ms per second
-        drawHand(ctx, secondHandAngle, radius*0.85, radius*0.02, "red");  
+        );
+        drawHand(ctx, secondHandAngle, radius*0.85, radius*0.02, "red"); 
+    }
 
-        //minute    
+    function drawMinuteHand(ctx, radius, now){
+        var minute = now.minute(); 
+        var second = now.second();
+        var degreesPerMinute = 360/60;
+        
         //var minuteHandAngle=(minute*Math.PI/30)+(second*Math.PI/(30*60));
         var minuteHandAngle= degreeToRadians(
             minute * degreesPerMinute + 
             second * degreesPerSecond / 60
-        ); //move minute hand tiny 1 per second
-        //drawHand(ctx, minuteHandAngle, radius*0.8, radius*0.07);
+        ); //move minute hand tiny 1 per second        
         drawHand(ctx, minuteHandAngle, radius*.85, radius*0.09, "black");
+    }
 
-        //hour    
+    function drawHourHand(ctx, radius, now){
+        var hour = now.hour() <= 12 ? now.hour() : now.hour() - 12; 
+        var minute = now.minute();                   
+        var minutesSinceTwelve = 60 * hour + minute;
+
         //var hourHand =  (hour*Math.PI/6)+(minute*Math.PI/(6*60))+(second*Math.PI/(360*60));
         var hourHandAngle = degreeToRadians(0.5 * minutesSinceTwelve);
-        /*
-        var hourHandAngle1 = degreeToRadians(
-            hour * degreesPerHour +
-            minute * degreesPerMinute / 60 +
-            second * degreesPerSecond / 3600
-        );
-        */
-        //drawHand(ctx, hourHandAngle, radius*0.5, radius*0.07);                          
         drawHand(ctx, hourHandAngle, radius*.5, radius*0.09, "black");
     }
 
     function drawHand(ctx, angle, length, width, color) {   
         ctx.save();
         ctx.beginPath();
-        ctx.translate(xcntr, ycntr);             
+        ctx.translate(xCenter, yCenter);             
         ctx.lineWidth = width;
         ctx.lineCap = "round";
         ctx.moveTo(0,0);
@@ -229,32 +261,9 @@ define(function(require){
         return radians;
     }
 
-    function drawToFavicon(bigCtx){                
-        setTimeout(function(){
-            var favIconWidth = 150;
-            var favIconHeight = 150;        
-            var dx = 0;
-            var dy = 0;     
-            var favIconCanvas = document.getElementById('favIconCanvas');
-            var img = document.getElementById('img');            
-            //img.src = "empty_clock.png"
-            var favIconCtx = favIconCanvas.getContext('2d');
-            ctx.mozImageSmoothingEnabled = false;
-            ctx.webkitImageSmoothingEnabled = false;
-            ctx.msImageSmoothingEnabled = false;            
-            ctx.imageSmoothingEnabled = false;
-        
-            var link = document.getElementById('favicon');            
-            favIconCanvas.width = favIconWidth;
-            favIconCanvas.height = favIconHeight;           
-            //favIconCtx.drawImage(img, dx, dy, favIconWidth, favIconHeight); 
-            favIconCtx.drawImage(bigCtx.canvas, dx, dy, favIconWidth, favIconHeight);               
-            link.href = bigCtx.canvas.toDataURL('image/png');            
-            drawToFavicon(bigCtx);
-        }, 16);        
-        
-        
-
+    function drawToFavicon(ctx){                
+        var link = document.getElementById('favicon');
+        link.href = ctx.canvas.toDataURL('image/png');                                                  
     }
 
     return {

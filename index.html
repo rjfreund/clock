@@ -4,16 +4,14 @@
 <meta charset="UTF-8">
 <title>Clock</title>
 <link id="favicon" rel="icon" type="image/png" href="empty_clock.png">
+<link rel="stylesheet" href="styles.css">
 </head>
 
 <body>
-    <div id="clockText" style="width: 100px; margin: 0 auto;"></div>    
-    <br/>
-    <canvas id="canvas" width="150" height="150" style="display: block; margin: 0 auto"></canvas>
-    <!--
-    <img id="img" crossOrigin="anonymous" src="./empty_clock.png" style="display: block; margin: 0 auto"></img>
-    -->
-    <canvas id="favIconCanvas" width="150" height="150" style="background-color: blue; display: block; margin: 0 auto"></canvas>
+    <div id="container">        
+        <div id="clockText"></div>        
+        <canvas id="canvas"></canvas>
+    </div>    
 </body>
 <script data-main="scripts/main.js" src="scripts/require.js"></script>
 </html>

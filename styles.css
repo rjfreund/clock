@@ -1,0 +1,30 @@
+html, body{
+    margin: 0;
+    height: 100%;    
+}
+
+.noScroll{
+    overflow: hidden;
+}
+
+.vertScroll{
+    overflow-y: "scroll";
+}
+
+#container{
+    width: 100%;
+    height: 100%;     
+}
+
+#canvas{
+    display: block; 
+    margin: 0 auto;       
+}
+
+#clockText{
+    width: 100px;
+    display: block; 
+    margin: 0 auto;
+    padding-top: 10px;
+    padding-bottom: 10px;
+}
