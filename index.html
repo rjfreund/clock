@@ -3,13 +3,17 @@
 <head>
 <meta charset="UTF-8">
 <title>Clock</title>
-<link rel="shortcut icon" href="favicon.ico" type="image/x-icon">
+<link id="favicon" rel="icon" type="image/png" href="empty_clock.png">
 </head>
 
 <body>
     <div id="clockText" style="width: 100px; margin: 0 auto;"></div>    
     <br/>
-    <canvas id="canvas" width="400" height="400" style="display: block; margin: 0 auto"></canvas>
+    <canvas id="canvas" width="150" height="150" style="display: block; margin: 0 auto"></canvas>
+    <!--
+    <img id="img" crossOrigin="anonymous" src="./empty_clock.png" style="display: block; margin: 0 auto"></img>
+    -->
+    <canvas id="favIconCanvas" width="150" height="150" style="background-color: blue; display: block; margin: 0 auto"></canvas>
 </body>
 <script data-main="scripts/main.js" src="scripts/require.js"></script>
 </html>

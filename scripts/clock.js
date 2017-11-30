@@ -2,42 +2,78 @@ define(function(require){
     var moment = require('./moment');
     var Alarm = require('./alarm');
 
-    return function Clock(id){
-        var framesPerSecond = 60;
-        var startTime;    
-        var me = this;
-        var id = id;
+    return function Clock(){
+        var framesPerSecond = 60;            
         var alarms = [];
-        var ticker = null;
+        var timeout = null;
+        var isTimeoutMode;
         var textDestinations = [];
-        var displayDestinations = [];
-        var ctx;
+        var displayDestinations = [];        
         var xcntr;
         var ycntr;
         var snoozeDuration = 5; //5 minutes
+        var outerRingWidth;
 
-    function start(){       
-        setText(); //changed set interval to this because set interval was stopping after a while for some reason(?)
+    function start(){
+        if (isTimeoutMode){
+            startTimeoutMode();
+        } else {
+            startReqAnimMode();   
+        }                     
+    };
+
+    function setTimeoutMode(){
+        isTimeoutMode = true;
+    }
+
+    function stopTimeoutMode(){
+        isTimeoutMode = false;
+        clearTimeout(timeout);
+        startReqAnimMode();
+    }    
+
+    function stop(){
+      clearTimeout(timeout);
+    };
+
+    function doWork(){
+        checkAlarms();
+        for(var i = 0; i < textDestinations.length; i++){
+            var dest = textDestinations[i];
+            dest.target[dest.attr] = getTime();
+        }
         for(var k = 0; k < displayDestinations.length; k++){              
             ctx = displayDestinations[k].getContext("2d");
             xcntr = (displayDestinations[k].width / 2)
             ycntr = (displayDestinations[k].height / 2);
-            drawClock();        
-        }         
-    };
-    function stop(){
-      clearTimeout(ticker);
-    };
+            drawClock(ctx);
+            drawToFavicon(ctx);
+        }
+    }
 
-    function setText(){
-        ticker = setTimeout(function updateTimes(){  
-            checkAlarms();
-            for(var i = 0; i < textDestinations.length; i++){
-                var dest = textDestinations[i];
-                dest.target[dest.attr] = getTime();
-            }
-            setText();                   
+    function startTimeoutMode(){
+        timeout = setTimeout(function updateTimes(){  
+            doWork();
+            startTimeoutMode();                   
         }, 16.75);
+    }
+
+    
+
+    function startReqAnimMode(prevTimeInMs){
+        if (isTimeoutMode){            
+            startTimeoutMode();
+            return; 
+        }
+        var nowInMs = performance.now();        
+        /*  don't really need to track movement of characters in this program based on framerate or time,
+            but I'm going to keep this here as a reference:
+            - keep track of how many milliseconds since last requestAnimationFrame
+            - animate character based off of how much time passed
+        */
+        var changeInMs = nowInMs - prevTimeInMs;                                       
+        doWork();        
+        requestAnimationFrame(startReqAnimMode);
     }
 
     function checkAlarms(){
@@ -80,26 +116,20 @@ define(function(require){
     function removeAlarm(i){ alarms.splice(i, 1); };
     function getTime(){ return moment().format('h:mm:s.S A'); };    
 
-    function drawClock(prevTimeInMs) {        
-        var nowInMs = performance.now();        
-        /*  don't really need to track movement of characters in this program based on framerate or time,
-            but I'm going to keep this here as a reference:
-            - keep track of how many milliseconds since last requestAnimationFrame
-            - animate character based off of how much time passed
-        */
-        var changeInMs = nowInMs - prevTimeInMs;
-        var radius = (canvas.height / 2) * 0.80;                
+    function drawClock(ctx) {
+        //var radius = (canvas.height / 2) * 0.80;
+        outerRingWidth = (canvas.height / 2)*0.1;
+        var radius = (canvas.height / 2) - outerRingWidth;
         drawFace(ctx, radius);
         drawNumbers(ctx, radius);
-        drawTime(ctx, radius);  
-        requestAnimationFrame(drawClock);
+        drawTime(ctx, radius);                 
     }
 
     function drawFace(ctx, radius) {
         var grad;
         ctx.beginPath();        
         ctx.arc(xcntr, ycntr, radius, 0, 2*Math.PI);  
-        ctx.fillStyle = 'gray';
+        ctx.fillStyle = 'white';
         ctx.fill();  
         grad = ctx.createRadialGradient(xcntr,ycntr,radius*0.30, xcntr,ycntr,radius*0.4);  
         grad.addColorStop(0, '#333');
@@ -109,7 +139,7 @@ define(function(require){
         ctx.lineWidth = radius*0.05;
         ctx.stroke();
         ctx.beginPath();
-        ctx.arc(xcntr, ycntr, radius*0.1, 0, 2*Math.PI);
+        ctx.arc(xcntr, ycntr, outerRingWidth, 0, 2*Math.PI);
         ctx.fillStyle = '#333';
         ctx.fill();    
     }
@@ -147,7 +177,7 @@ define(function(require){
             second * degreesPerSecond + 
             ms * degreesPerMilli
         ); //1000 ms per second
-        drawHand(ctx, secondHandAngle, radius*0.9, radius*0.02);  
+        drawHand(ctx, secondHandAngle, radius*0.85, radius*0.02, "red");  
 
         //minute    
         //var minuteHandAngle=(minute*Math.PI/30)+(second*Math.PI/(30*60));
@@ -155,7 +185,8 @@ define(function(require){
             minute * degreesPerMinute + 
             second * degreesPerSecond / 60
         ); //move minute hand tiny 1 per second
-        drawHand(ctx, minuteHandAngle, radius*0.8, radius*0.07);
+        //drawHand(ctx, minuteHandAngle, radius*0.8, radius*0.07);
+        drawHand(ctx, minuteHandAngle, radius*.85, radius*0.09, "black");
 
         //hour    
         //var hourHand =  (hour*Math.PI/6)+(minute*Math.PI/(6*60))+(second*Math.PI/(360*60));
@@ -167,10 +198,11 @@ define(function(require){
             second * degreesPerSecond / 3600
         );
         */
-        drawHand(ctx, hourHandAngle, radius*0.5, radius*0.07);                          
+        //drawHand(ctx, hourHandAngle, radius*0.5, radius*0.07);                          
+        drawHand(ctx, hourHandAngle, radius*.5, radius*0.09, "black");
     }
 
-    function drawHand(ctx, angle, length, width) {   
+    function drawHand(ctx, angle, length, width, color) {   
         ctx.save();
         ctx.beginPath();
         ctx.translate(xcntr, ycntr);             
@@ -179,6 +211,7 @@ define(function(require){
         ctx.moveTo(0,0);
         ctx.rotate(angle);
         ctx.lineTo(0, -length); //have to set negative length here because of rotation or something
+        ctx.strokeStyle=color;
         ctx.stroke();
         //ctx.rotate(-angle);
         ctx.restore();
@@ -196,6 +229,34 @@ define(function(require){
         return radians;
     }
 
+    function drawToFavicon(bigCtx){                
+        setTimeout(function(){
+            var favIconWidth = 150;
+            var favIconHeight = 150;        
+            var dx = 0;
+            var dy = 0;     
+            var favIconCanvas = document.getElementById('favIconCanvas');
+            var img = document.getElementById('img');            
+            //img.src = "empty_clock.png"
+            var favIconCtx = favIconCanvas.getContext('2d');
+            ctx.mozImageSmoothingEnabled = false;
+            ctx.webkitImageSmoothingEnabled = false;
+            ctx.msImageSmoothingEnabled = false;            
+            ctx.imageSmoothingEnabled = false;
+        
+            var link = document.getElementById('favicon');            
+            favIconCanvas.width = favIconWidth;
+            favIconCanvas.height = favIconHeight;           
+            //favIconCtx.drawImage(img, dx, dy, favIconWidth, favIconHeight); 
+            favIconCtx.drawImage(bigCtx.canvas, dx, dy, favIconWidth, favIconHeight);               
+            link.href = bigCtx.canvas.toDataURL('image/png');            
+            drawToFavicon(bigCtx);
+        }, 16);        
+        
+        
+
+    }
+
     return {
         start: start,
         stop: stop,
@@ -205,7 +266,9 @@ define(function(require){
         addAlarm: addAlarm,
         removeAlarm: removeAlarm,
         getTime: getTime,
-        drawClock: drawClock
+        drawClock: drawClock,
+        setTimeoutMode: setTimeoutMode,
+        stopTimeoutMode: stopTimeoutMode
     };
     
   };
