@@ -11,14 +11,8 @@ require(['clock'], function main(Clock){
 	clock.setDrawDestinations([document.getElementById('canvas')]);
 	clock.start();
 
-    window.addEventListener('blur', function(){ 
-        console.log("blur! setTimeoutMode!");
-        clock.setTimeoutMode(); 
-    });
-    window.addEventListener('focus', function(){ 
-        console.log("focus! stopTimeoutMode!");
-        clock.stopTimeoutMode(); 
-    });    
+    window.addEventListener('blur', function(){ clock.setIntervalMode(); });
+    window.addEventListener('focus', function(){ clock.stopIntervalMode(); });    
 });
 
 //Opera Engineer's Erik Möller's polyfill for requestAnimationFrame
