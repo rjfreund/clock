@@ -29,7 +29,8 @@ define(function(require){
 
     function stopTimeoutMode(){
         isTimeoutMode = false;
-        clearTimeout(timeout);
+        //clearTimeout(timeout);
+        clearInterval(timeout);
         startReqAnimMode();
     }    
 
@@ -98,9 +99,9 @@ define(function(require){
     }        
 
     function startTimeoutMode(){
-        timeout = setTimeout(function updateTimes(){  
+        timeout = setInterval(function updateTimes(){  
             doWork();
-            startTimeoutMode();                   
+            //startTimeoutMode();                   
         }, 16.75);
     }    
 

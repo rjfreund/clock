@@ -3,8 +3,6 @@ require(['clock'], function main(Clock){
 
 	var clock = new Clock();
 	clock.addAlarm('12:29', 'facebook live');
-	clock.addAlarm('12:13', 'test1');
-	clock.addAlarm('12:25', 'test2');
 	clock.addAlarm('03:28', 'Winnebago');
 	clock.setTextDestinations([
 		{ target: window.document, attr: 'title'}, 
