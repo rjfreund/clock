@@ -3,15 +3,17 @@
 <head>
 <meta charset="UTF-8">
 <title>Clock</title>
-<link id="favicon" rel="icon" type="image/png" href="empty_clock.png">
-<link rel="stylesheet" href="styles.css">
+<link id="favicon" rel="icon" type="image/png" href="img/empty_clock.png">
+<link rel="stylesheet" href="css/styles.css">
 </head>
-
 <body>
-    <div id="container">        
-        <div id="clockText"></div>        
+    <div id="container">
+        <div id="topBar">          
+            <img id="cog" src="img/cog.png"/>  
+            <div id="clockText"></div>        
+        </div>        
         <canvas id="canvas"></canvas>
     </div>    
 </body>
-<script data-main="scripts/main.js" src="scripts/require.js"></script>
+<script data-main="js/main.js" src="js/require.js"></script>
 </html>

@@ -7,8 +7,8 @@ define(function(require){
         var degreesPerSecond = 360/60;
         var degreesPerMilli = 360/(60 * 1000); //1000 mili per second
         var alarms = [];        
-        var timeout = null;
-        var isTimeoutMode;
+        var interval = null;
+        var isIntervalMode;
         var textDestinations = [];
         var displayDestinations = [];        
         var snoozeDuration = 5; //5 minutes               
@@ -16,25 +16,26 @@ define(function(require){
         var yCenter; 
 
     function start(){
-        if (isTimeoutMode){
-            startTimeoutMode();
+        if (isIntervalMode){
+            startIntervalMode();
         } else {
             startReqAnimMode();   
         }                     
     };
 
-    function setTimeoutMode(){
-        isTimeoutMode = true;
+    function setIntervalMode(){
+        isIntervalMode = true;
     }
 
-    function stopTimeoutMode(){
-        isTimeoutMode = false;
-        clearTimeout(timeout);
+    function stopIntervalMode(){
+        isIntervalMode = false;
+        //clearTimeout(timeout);
+        clearInterval(interval);
         startReqAnimMode();
     }    
 
     function stop(){
-      clearTimeout(timeout);
+      clearTimeout(interval);
     };
 
     //TODO: rename this thing to something better
@@ -97,16 +98,20 @@ define(function(require){
         element.className = "vertScroll";
     }        
 
-    function startTimeoutMode(){
-        timeout = setTimeout(function updateTimes(){  
+    function startIntervalMode(){
+        interval = setInterval(function updateTimes(){  
             doWork();
+<<<<<<< HEAD:scripts/clock.js
             startTimeoutMode();                   
         }, 1000);
+=======
+        }, 16.75);
+>>>>>>> dev:js/clock.js
     }    
 
     function startReqAnimMode(prevTimeInMs){
-        if (isTimeoutMode){            
-            startTimeoutMode();
+        if (isIntervalMode){            
+            startIntervalMode();
             return; 
         }
         var nowInMs = performance.now();        
@@ -288,8 +293,8 @@ define(function(require){
         removeAlarm: removeAlarm,
         getTime: getTime,
         drawClock: drawClock,
-        setTimeoutMode: setTimeoutMode,
-        stopTimeoutMode: stopTimeoutMode
+        setTimeoutMode: setIntervalMode,
+        stopIntervalMode: stopIntervalMode
     };
     
   };
