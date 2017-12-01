@@ -101,7 +101,7 @@ define(function(require){
         timeout = setTimeout(function updateTimes(){  
             doWork();
             startTimeoutMode();                   
-        }, 16.75);
+        }, 1000);
     }    
 
     function startReqAnimMode(prevTimeInMs){
