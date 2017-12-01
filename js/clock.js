@@ -101,12 +101,7 @@ define(function(require){
     function startIntervalMode(){
         interval = setInterval(function updateTimes(){  
             doWork();
-<<<<<<< HEAD:scripts/clock.js
-            startTimeoutMode();                   
-        }, 1000);
-=======
         }, 16.75);
->>>>>>> dev:js/clock.js
     }    
 
     function startReqAnimMode(prevTimeInMs){
@@ -293,7 +288,7 @@ define(function(require){
         removeAlarm: removeAlarm,
         getTime: getTime,
         drawClock: drawClock,
-        setTimeoutMode: setIntervalMode,
+        setIntervalMode: setIntervalMode,
         stopIntervalMode: stopIntervalMode
     };
     
