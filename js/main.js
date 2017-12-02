@@ -11,7 +11,7 @@ require(['clock'], function main(Clock){
 	clock.setDrawDestinations([document.getElementById('canvas')]);
 	clock.start();
 
-    window.addEventListener('blur', function(){ clock.setIntervalMode(); });
+    window.addEventListener('blur', function(){ clock.startIntervalMode(); });
     window.addEventListener('focus', function(){ clock.stopIntervalMode(); });    
 });
 
