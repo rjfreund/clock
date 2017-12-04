@@ -159,7 +159,7 @@ define(function(require){
     };
     function addAlarm(time, desc){ alarms.push(new Alarm(time, desc)); };
     function removeAlarm(i){ alarms.splice(i, 1); };
-    function getTime(){ return moment().format('h:mm:s.S A'); };    
+    function getTime(){ return moment().format('h:mm:ss.S A'); };    
 
     function drawClock(ctx) {        
         xCenter = ctx.canvas.width/2;
