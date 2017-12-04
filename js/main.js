@@ -2,15 +2,19 @@ require(['clock'], function main(Clock){
 	
 
 	var clock = new Clock();
-	clock.addAlarm('12:29', 'facebook live');
-	clock.addAlarm('03:28', 'Winnebago');
+	clock.addAlarm({ time:'12:29', desc:'facebook live'});
+	clock.addAlarm({ time:'03:28', desc:'Winnebago'});
 	clock.setTextDestinations([
 		{ target: window.document, attr: 'title'}, 
 		{ target: document.getElementById('clockText'), attr: 'innerHTML'}
 	]);
 	clock.setDrawDestinations([document.getElementById('clockAnim')]);
+    clock.setAlarmDestionations(document.getElementsByClassName('alarm'));
 	clock.start();
-
+    
+    document.getElementById('addAlarm').addEventListener('click', function(){ 
+        clock.addAlarm();
+    });
     window.addEventListener('blur', function(){ clock.stopReqAnimMode(); clock.startIntervalMode(); });
     window.addEventListener('focus', function(){ clock.stopIntervalMode(); clock.startReqAnimMode(); });    
 });

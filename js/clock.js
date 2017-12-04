@@ -6,14 +6,15 @@ define(function(require){
         var framesPerSecond = 60;            
         var degreesPerSecond = 360/60;
         var degreesPerMilli = 360/(60 * 1000); //1000 mili per second
-        var alarms = [];        
+        var alarms = [];
         var interval = null;
         var isIntervalMode;
         var textDestinations = [];
-        var displayDestinations = [];        
-        var snoozeDuration = 5; //5 minutes               
+        var displayDestinations = [];
+        var alarmDestinations = [];
+        var snoozeDuration = 5; //5 minutes
         var xCenter;
-        var yCenter; 
+        var yCenter;
 
     function start(){
         if (isIntervalMode){
@@ -31,10 +32,16 @@ define(function(require){
     function startIntervalMode(){
         stopReqAnimMode();
         isIntervalMode = true;
-        interval = setInterval(function updateTimes(){  
+        var intervalTime = 16.75; //60 fps
+        if (isMobile()){ intervalTime =  5000; } //short interval time seems to be too much on mobile devices
+        interval = setInterval(function(){
             doWork();
-        }, 16.75);
+        }, intervalTime);
     }  
+
+    function isMobile(){
+        return window.innerWidth <= 800;
+    }
 
     function stopIntervalMode(){
         isIntervalMode = false;        
@@ -63,64 +70,57 @@ define(function(require){
     
     //TODO: rename this thing to something better
     function doWork(){ //not really sure what to name this?
-        checkAlarms();        
+        checkAlarms();
+        displayText();
+        //displayDraw();
+        displayAlarms();           
+    }
+
+    function displayText(){
         for(var i = 0; i < textDestinations.length; i++){
             var dest = textDestinations[i];
             dest.target[dest.attr] = getTime();
         }
+    }
+
+    function displayDraw(){
         for(var k = 0; k < displayDestinations.length; k++){              
-            ctx = displayDestinations[k].getContext("2d");                             
+            var ctx = displayDestinations[k].getContext("2d");                             
             setCanvasDim(ctx);
             drawClock(ctx);
             drawToFavicon(ctx);
+        } 
+    }
+
+    function displayAlarms(){        
+        for (var i = 0; i < alarmDestinations.length; i++){
+            if (alarmDestinations[i].parentNode.children.length >= alarms.length){ break; }//alarms already loaded
+            var alarmDestination = alarmDestinations[i];
+            for(var k = alarmDestination.parentNode.children.length-1; k < alarms.length; k++){
+                var lastChildIndex = alarmDestination.parentNode.children.length-1;
+                var dupNode = alarmDestination.parentNode.children[lastChildIndex].cloneNode(true);
+                alarmDestination.getElementsByTagName('input')[0].value = alarms[k].time;
+                alarmDestination.getElementsByTagName('input')[1].value = alarms[k].desc;                                
+                if (k == alarms.length-1){ return; }
+                alarmDestination.parentNode.append(dupNode);
+                alarmDestination = dupNode;
+            }
         }
     }
 
     function setCanvasDim(ctx){
-        var container = document.getElementById("container");                   
-        var clockText = document.getElementById("clockText");
-        var allExceptCanvas = (document.body.clientHeight - ctx.canvas.height)
-        var containerMinHeight = 250;
-        var containerMaxHeight = 400;
-        if (window.innerHeight >= containerMaxHeight){ //set max height in px
-            ctx.canvas.height = containerMaxHeight - allExceptCanvas;
-            ctx.canvas.height -= 10; //to prevent scrollbar flashing
-            ctx.canvas.width = ctx.canvas.height;
-        } else if (window.innerHeight <= containerMinHeight){ //set min height in px
+        var minWidth = 250;
+        var maxWidth = 300;
+        if (ctx.canvas.parentElement.clientWidth == maxWidth){ return; }
+        if (ctx.canvas.parentElement.clientWidth > maxWidth){
+            ctx.canvas.width = maxWidth;
             ctx.canvas.height = ctx.canvas.width;
-            setVertScroll(container);
-        } else if (ctx.canvas.width >= window.innerWidth){ //prevent canvas from being wider than window
-            ctx.canvas.height = allExceptCanvas;
-            ctx.canvas.height -= 10; //to prevent scrollbar flashing
-            ctx.canvas.width = ctx.canvas.height;
-        } else if (ctx.canvas.height >= (window.innerHeight - clockText.clientHeight //max-height: 100%  
-            && ctx.canvas.height < window.innerWidth
-        )){ 
-            ctx.canvas.height = (window.innerHeight - clockText.clientHeight);
-            ctx.canvas.height -= 10; //to prevent scrollbar flashing
-            ctx.canvas.width = ctx.canvas.height;
-            setNoScroll(container);
-        } else if (ctx.canvas.height >= window.innerWidth){ //max-width: 100%
-            ctx.canvas.height = window.innerWidth;
-            ctx.canvas.height -= 10; //to prevent scrollbar flashing
-            ctx.canvas.width = ctx.canvas.height;
-            setNoScroll(container);
-        } else { //scale to screen
-            ctx.canvas.height = (window.innerHeight - clockText.clientHeight); 
-            ctx.canvas.height -= 10; //to prevent scrollbar flashing
-            ctx.canvas.width = ctx.canvas.height;
-            setNoScroll(container);
-        }          
+            return;
+        }
+        ctx.canvas.width = ctx.canvas.parentElement.clientWidth;
+        ctx.canvas.height = ctx.canvas.width;        
     }
-
-    function setNoScroll(element){
-        element.className = "noScroll";
-    }
-
-    function setVertScroll(element){
-        element.className = "vertScroll";
-    }          
-
+    
     function checkAlarms(){
         for (var i = 0; i < alarms.length; i++){
             var alarm = alarms[i];        
@@ -157,9 +157,18 @@ define(function(require){
         displayDestinations.push(inputDisplayDestinations[i]);
       }
     };
-    function addAlarm(time, desc){ alarms.push(new Alarm(time, desc)); };
+
+    function setAlarmDestionations(inputAlarmDestinations){
+        inputAlarmDestinations = [].slice.call(inputAlarmDestinations); // nodelist to array
+        if(!Array.isArray(inputAlarmDestinations)){ console.error("Alarm destinations must be array;"); return; }        
+        for (var i = 0; i < inputAlarmDestinations.length; i++){
+            alarmDestinations.push(inputAlarmDestinations[i]);
+        }
+    }
+
+    function addAlarm(input){ alarms.push(new Alarm(input)); };
     function removeAlarm(i){ alarms.splice(i, 1); };
-    function getTime(){ return moment().format('h:mm:ss.S A'); };    
+    function getTime(){ return moment().format('hh:mm:ss.S A'); };    
 
     function drawClock(ctx) {        
         xCenter = ctx.canvas.width/2;
@@ -285,6 +294,7 @@ define(function(require){
         checkAlarms: checkAlarms,
         setTextDestinations: setTextDestinations,
         setDrawDestinations: setDrawDestinations,
+        setAlarmDestionations: setAlarmDestionations,
         addAlarm: addAlarm,
         removeAlarm: removeAlarm,
         getTime: getTime,

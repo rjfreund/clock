@@ -18,8 +18,36 @@
     </div>
     -->
     <div class="container">
-        <div class="row text-center"><span id="clockText"></span></div>
-        <div class="row"><canvas id="clockAnim" class="center-block"></canvas></div>        
+        <div class="row text-center">
+            <span id="clockText"></span>
+            </div>
+        <div class="row">
+            <canvas id="clockAnim" class="center-block"></canvas>
+        </div>
+        <div class="row text-center">
+            <button id="toggleAlarms"><i class="glyphicon glyphicon-bell"></i></button>
+            <!-- <span class="label label-default"><i class="glyphicon glyphicon-bell"></i></span> -->
+        </div>
+        <div class="row">
+            <div class="center-block">
+                <table class="margin-auto">
+                    <thead>
+                        <tr>
+                            <th>time</th>
+                            <th>desc</th>
+                            <th><button id="addAlarm"><i class="glyphicon glyphicon-plus"></i></button></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr class="alarm">
+                            <td><input type="text" class="alarmTime"/></td>
+                            <td><input type="text" class="alarmDesc"/></td>
+                            <td><button><i class="glyphicon glyphicon-remove"></i></button></td>
+                        </tr>
+                    </tbody>
+                </table>              
+            </div>            
+        </div>
     </div>
 </body>
 <script data-main="js/main.js" src="js/require.js"></script>
