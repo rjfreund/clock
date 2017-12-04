@@ -99,13 +99,14 @@ define(function(require){
     }        
 
     function startIntervalMode(){
+        setIntervalMode();
         interval = setInterval(function updateTimes(){  
             doWork();
         }, 16.75);
     }    
 
     function startReqAnimMode(prevTimeInMs){
-        if (isIntervalMode){            
+        if (isIntervalMode){                        
             startIntervalMode();
             return; 
         }
@@ -288,7 +289,7 @@ define(function(require){
         removeAlarm: removeAlarm,
         getTime: getTime,
         drawClock: drawClock,
-        setIntervalMode: setIntervalMode,
+        startIntervalMode: startIntervalMode,
         stopIntervalMode: stopIntervalMode
     };
     
