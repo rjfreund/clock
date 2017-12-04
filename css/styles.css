@@ -22,7 +22,7 @@ html, body{
 }
 
 #clockText{
-    width: 200px;
+    width: 100%;
     display: block; 
     margin: 0 auto;
     padding-top: 10px;
