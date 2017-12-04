@@ -21,23 +21,46 @@ define(function(require){
         } else {
             startReqAnimMode();   
         }                     
-    };
-
-    function setIntervalMode(){
-        isIntervalMode = true;
     }
 
+    function stop(){        
+      clearTimeout(interval);
+      isIntervalMode = false;
+    }
+
+    function startIntervalMode(){
+        stopReqAnimMode();
+        isIntervalMode = true;
+        interval = setInterval(function updateTimes(){  
+            doWork();
+        }, 16.75);
+    }  
+
     function stopIntervalMode(){
-        isIntervalMode = false;
-        //clearTimeout(timeout);
+        isIntervalMode = false;        
         clearInterval(interval);
-        startReqAnimMode();
     }    
 
-    function stop(){
-      clearTimeout(interval);
-    };
+    function startReqAnimMode(prevTimeInMs){
+        if (isIntervalMode){ return; }
+        stopIntervalMode();        
+        var nowInMs = performance.now();
+        /*  don't really need to track movement of characters in this program based on framerate or time,
+            but I'm going to keep this here as a reference:
+            - keep track of how many milliseconds since last requestAnimationFrame
+            - animate character based off of how much time passed
+        */
+        var changeInMs = nowInMs - prevTimeInMs;                                       
+        doWork();        
+        requestAnimationFrame(startReqAnimMode);
+    }
 
+    function stopReqAnimMode(){
+        isIntervalMode = true;        
+    }
+
+    
+    
     //TODO: rename this thing to something better
     function doWork(){ //not really sure what to name this?
         checkAlarms();        
@@ -96,30 +119,7 @@ define(function(require){
 
     function setVertScroll(element){
         element.className = "vertScroll";
-    }        
-
-    function startIntervalMode(){
-        setIntervalMode();
-        interval = setInterval(function updateTimes(){  
-            doWork();
-        }, 16.75);
-    }    
-
-    function startReqAnimMode(prevTimeInMs){
-        if (isIntervalMode){                        
-            startIntervalMode();
-            return; 
-        }
-        var nowInMs = performance.now();        
-        /*  don't really need to track movement of characters in this program based on framerate or time,
-            but I'm going to keep this here as a reference:
-            - keep track of how many milliseconds since last requestAnimationFrame
-            - animate character based off of how much time passed
-        */
-        var changeInMs = nowInMs - prevTimeInMs;                                       
-        doWork();        
-        requestAnimationFrame(startReqAnimMode);
-    }
+    }          
 
     function checkAlarms(){
         for (var i = 0; i < alarms.length; i++){
@@ -290,7 +290,9 @@ define(function(require){
         getTime: getTime,
         drawClock: drawClock,
         startIntervalMode: startIntervalMode,
-        stopIntervalMode: stopIntervalMode
+        stopIntervalMode: stopIntervalMode,
+        startReqAnimMode: startReqAnimMode,
+        stopReqAnimMode: stopReqAnimMode
     };
     
   };

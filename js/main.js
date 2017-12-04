@@ -8,12 +8,20 @@ require(['clock'], function main(Clock){
 		{ target: window.document, attr: 'title'}, 
 		{ target: document.getElementById('clockText'), attr: 'innerHTML'}
 	]);
-	clock.setDrawDestinations([document.getElementById('canvas')]);
+	clock.setDrawDestinations([document.getElementById('clockAnim')]);
 	clock.start();
 
-    window.addEventListener('blur', function(){ clock.startIntervalMode(); });
-    window.addEventListener('focus', function(){ clock.stopIntervalMode(); });    
+    window.addEventListener('blur', function(){ clock.stopReqAnimMode(); clock.startIntervalMode(); });
+    window.addEventListener('focus', function(){ clock.stopIntervalMode(); clock.startReqAnimMode(); });    
 });
+
+
+
+
+
+
+
+
 
 //Opera Engineer's Erik Möller's polyfill for requestAnimationFrame
 (function requestAnimationFrameShim() {

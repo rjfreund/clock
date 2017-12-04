@@ -6,14 +6,21 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link id="favicon" rel="icon" type="image/png" href="img/empty_clock.png">
 <link rel="stylesheet" href="css/styles.css">
+<link rel="stylesheet" href="css/bootstrap.css">
 </head>
 <body>
+    <!--
     <div id="container">
         <div id="topBar">                        
             <div id="clockText"></div>        
         </div>        
-        <canvas id="canvas"></canvas>
-    </div>    
+        <canvas id="clockAnim"></canvas>
+    </div>
+    -->
+    <div class="container">
+        <div class="row text-center"><span id="clockText"></span></div>
+        <div class="row"><canvas id="clockAnim" class="center-block"></canvas></div>        
+    </div>
 </body>
 <script data-main="js/main.js" src="js/require.js"></script>
 </html>
