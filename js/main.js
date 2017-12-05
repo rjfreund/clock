@@ -12,7 +12,7 @@ require(['clock'], function main(Clock){
     clock.setAlarmDestionations(document.getElementsByClassName('alarm'));
 	clock.start();
     
-    document.getElementById('addAlarm').addEventListener('click', function(){ 
+    document.getElementById('addAlarm').addEventListener('click', function(){
         clock.addAlarm();
     });
     window.addEventListener('blur', function(){ clock.stopReqAnimMode(); clock.startIntervalMode(); });

@@ -1,6 +1,8 @@
 define(function(require){
     var moment = require('./moment');
     var Alarm = require('./alarm');
+    var adler32StringToHash = require('./adler32');
+    var getLineNumber = require('./getLineNumber');
 
     return function Clock(){
         var framesPerSecond = 60;            
@@ -9,9 +11,11 @@ define(function(require){
         var alarms = [];
         var interval = null;
         var isIntervalMode;
+        var allAlarmsDisplayed = false;
         var textDestinations = [];
         var displayDestinations = [];
         var alarmDestinations = [];
+        var templates = {};
         var snoozeDuration = 5; //5 minutes
         var xCenter;
         var yCenter;
@@ -19,9 +23,9 @@ define(function(require){
     function start(){
         if (isIntervalMode){
             startIntervalMode();
-        } else {
-            startReqAnimMode();   
-        }                     
+            return;
+        }
+        startReqAnimMode();
     }
 
     function stop(){        
@@ -65,9 +69,7 @@ define(function(require){
     function stopReqAnimMode(){
         isIntervalMode = true;        
     }
-
-    
-    
+        
     //TODO: rename this thing to something better
     function doWork(){ //not really sure what to name this?
         checkAlarms();
@@ -92,20 +94,55 @@ define(function(require){
         } 
     }
 
-    function displayAlarms(){        
+    function displayAlarms(){
+        if (alarmDestinations.length == 0){ return; }
+        if (alarms.length == 0){ return; }
+        if (allAlarmsDisplayed){ return; }
+        var templateKey = getLineNumber(this);
+        var templateNode;        
+        for (var i = 0; i < alarmDestinations.length; i++){
+            var alarmDestination = alarmDestinations[i];
+            for (var k = 0; k < alarms.length; k++){                
+                if (!templates[templateKey]){
+                    templateNode = alarmDestination.parentNode.firstElementChild.cloneNode(true);                        
+                    alarmDestination.remove();
+                    templates[templateKey] = templateNode;
+                }
+                var displayId = alarmDestination.getAttribute('data-id');
+                if (alarms.find(function(alarm){ return displayId == alarm.id; })){
+                    continue;
+                }                
+                alarmDestination.setAttribute('data-id', alarms[k].id);
+                alarmDestination.getElementsByTagName('input')[0].value = alarms[k].time;
+                alarmDestination.getElementsByTagName('input')[1].value = alarms[k].desc;
+                if (k == alarms.length-1){ continue; }
+                alarmDestination.parentNode.append(templateNode);
+                alarmDestination = templateNode;
+            }            
+        }    
+        allAlarmsDisplayed = true;        
+        
+        /*
         for (var i = 0; i < alarmDestinations.length; i++){
             if (alarmDestinations[i].parentNode.children.length >= alarms.length){ break; }//alarms already loaded
             var alarmDestination = alarmDestinations[i];
-            for(var k = alarmDestination.parentNode.children.length-1; k < alarms.length; k++){
+            
+            //var lastChildIndex = alarmDestination.parentNode.children.length-1;
+            //var dupNode = alarmDestination.parentNode.children[lastChildIndex].cloneNode(true);
+            //var parent = alarmDestination.parentNode;
+            
+            for(var k = 0; k < alarms.length; k++){                
+                if (alarmDestination.getAttribute('data-id') == alarms[k].id.toString()){ continue; }
                 var lastChildIndex = alarmDestination.parentNode.children.length-1;
                 var dupNode = alarmDestination.parentNode.children[lastChildIndex].cloneNode(true);
+                alarmDestination.setAttribute('data-id', alarms[k].id);
                 alarmDestination.getElementsByTagName('input')[0].value = alarms[k].time;
                 alarmDestination.getElementsByTagName('input')[1].value = alarms[k].desc;                                
                 if (k == alarms.length-1){ return; }
                 alarmDestination.parentNode.append(dupNode);
                 alarmDestination = dupNode;
             }
-        }
+        }*/
     }
 
     function setCanvasDim(ctx){
@@ -166,7 +203,11 @@ define(function(require){
         }
     }
 
-    function addAlarm(input){ alarms.push(new Alarm(input)); };
+    function addAlarm(input){ 
+        alarms.push(new Alarm(input));
+        allAlarmsDisplayed = false;
+        displayAlarms();
+    };
     function removeAlarm(i){ alarms.splice(i, 1); };
     function getTime(){ return moment().format('hh:mm:ss.S A'); };    
 

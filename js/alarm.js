@@ -1,10 +1,14 @@
-define(['moment'], function(moment){	
+define(['moment', 'adler32'], function(moment, adler32StringToHash){	
 
 	return function Alarm(input){
-		this.time = moment().format('hh:mm');
-		this.desc = "";
-		var extended = extend(this, input);
-		return extended;
+		var r = {};
+		r.time = moment().add(30, "minutes").format('hh:mm');
+		r.desc = "";
+		r.dateCreated = moment().format();
+		r.isActive = false;
+		r = extend(r, input);
+		r.id = adler32StringToHash(JSON.stringify(r));
+		return r;
 	};
 
 	function extend(defaults, options) {
