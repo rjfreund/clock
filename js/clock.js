@@ -99,26 +99,24 @@ define(function(require){
         if (alarms.length == 0){ return; }
         if (allAlarmsDisplayed){ return; }
         var templateKey = getLineNumber(this);
-        var templateNode;        
+        var copyNode;
+        var parentNode;
         for (var i = 0; i < alarmDestinations.length; i++){
             var alarmDestination = alarmDestinations[i];
             for (var k = 0; k < alarms.length; k++){                
                 if (!templates[templateKey]){
-                    templateNode = alarmDestination.parentNode.firstElementChild.cloneNode(true);                        
-                    alarmDestination.remove();
-                    templates[templateKey] = templateNode;
+                    templates[templateKey] = alarmDestination.cloneNode(true);
+                    parentNode = alarmDestination.parentNode;                    
                 }
-                var displayId = alarmDestination.getAttribute('data-id');
                 if (alarms.find(function(alarm){ return displayId == alarm.id; })){
                     continue;
-                }                
-                alarmDestination.setAttribute('data-id', alarms[k].id);
-                alarmDestination.getElementsByTagName('input')[0].value = alarms[k].time;
-                alarmDestination.getElementsByTagName('input')[1].value = alarms[k].desc;
-                if (k == alarms.length-1){ continue; }
-                alarmDestination.parentNode.append(templateNode);
-                alarmDestination = templateNode;
-            }            
+                } 
+                copyNode = templates[templateKey].cloneNode(true);                    
+                copyNode.setAttribute('data-id', alarms[k].id);
+                copyNode.getElementsByTagName('input')[0].value = alarms[k].time;
+                copyNode.getElementsByTagName('input')[1].value = alarms[k].desc;                
+                parentNode.appendChild(copyNode);
+            }
         }    
         allAlarmsDisplayed = true;        
         
