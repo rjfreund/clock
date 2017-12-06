@@ -23,9 +23,13 @@ tr > th, tr > td{
     width: 100%;
 }
 
-.alarms{
+.container-width{
     min-width: 300px;
     max-width: 300px;
+}
+
+.noPadding{
+    padding: 0;
 }
 
 /*
