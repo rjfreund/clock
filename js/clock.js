@@ -9,7 +9,8 @@ return function Clock(){
     var framesPerSecond = 60;
     var degreesPerSecond = 360/60;
     var degreesPerMilli = 360/(60 * 1000); //1000 mili per second
-    var alarms = [];
+    var alarmsStorageId = getIdByCodeLoc(this);
+    var alarms = JSON.parse(localStorage.getItem(alarmsStorageId)) || [];
     var interval = null;
     var isIntervalMode;
     var areAlarmsDisplayed = false;
@@ -51,10 +52,6 @@ return function Clock(){
         }, intervalTime);
     }
 
-    function isMobile(){
-        return window.innerWidth <= 800;
-    }
-
     function stopIntervalMode(){
         isIntervalMode = false;
         clearInterval(interval);
@@ -78,6 +75,9 @@ return function Clock(){
         isIntervalMode = true;
     }
 
+    function isMobile(){
+        return window.innerWidth <= 800;
+    }
 
     function displayText(){
         for(var i = 0; i < textDestinations.length; i++){
@@ -112,9 +112,11 @@ return function Clock(){
                 copyNode.getElementsByTagName('input')[1].value = alarms[k].desc;
                 nodeRefs[parentNodeId].appendChild(copyNode);
             }
+            /*
             if (alarms.length != 0){ continue; }
             copyNode = nodeRefs[templateNodeId].cloneNode(true);
             nodeRefs[parentNodeId].appendChild(copyNode);
+            */
         }
         areAlarmsDisplayed = true;
     }
@@ -134,6 +136,7 @@ return function Clock(){
 
     function addAlarm(input){
         alarms.push(new Alarm(input));
+        localStorage.setItem(alarmsStorageId, JSON.stringify(alarms));
         areAlarmsDisplayed = false;
         displayAlarms();
     };
@@ -143,6 +146,7 @@ return function Clock(){
             if (alarms[i].id != input.id){ continue; }
             alarms[i] = extend(input, alarms[i]);
         }
+        localStorage.setItem(alarmsStorageId, JSON.stringify(alarms));
         if (!forceRefresh){ return; }
         areAlarmsDisplayed = false;
         displayAlarms();
@@ -153,6 +157,7 @@ return function Clock(){
             if (alarms[i].id != id){ continue; }
             alarms.splice(i, 1);
         }
+        localStorage.setItem(alarmsStorageId, JSON.stringify(alarms));
         areAlarmsDisplayed = false;
         displayAlarms();
     };

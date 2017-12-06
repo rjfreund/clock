@@ -1,9 +1,31 @@
+html{
+    padding-top: 10px;
+}
+
+tr > th, tr > td{
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+}
+
+.alarms th{
+    width: 49%;
+}
+
+.alarms th:last-child{
+    width: 1%;
+}
+
 .margin-auto{
     margin: 0 auto;
 }
 
 .alarms input{
-    width: 80px;
+    width: 100%;
+}
+
+.alarms{
+    min-width: 300px;
+    max-width: 300px;
 }
 
 /*
