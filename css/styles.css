@@ -2,10 +2,14 @@
     margin: 0 auto;
 }
 
+.alarms input{
+    width: 80px;
+}
+
 /*
 html, body{
     margin: 0;
-     
+
 }
 
 .noScroll{
@@ -18,17 +22,17 @@ html, body{
 
 #container{
     width: 100%;
-    height: 100%;     
+    height: 100%;
 }
 
 #canvas{
-    display: block; 
-    margin: 0 auto;       
+    display: block;
+    margin: 0 auto;
 }
 
 #clockText{
     width: 100%;
-    display: block; 
+    display: block;
     margin: 0 auto;
     padding-top: 10px;
     padding-bottom: 10px;
@@ -36,7 +40,7 @@ html, body{
 
 #cog{
     width: 20px;
-    height: 20px;    
+    height: 20px;
 }
 
 

@@ -11,18 +11,18 @@
 <body>
     <!--
     <div id="container">
-        <div id="topBar">                        
-            <div id="clockText"></div>        
-        </div>        
+        <div id="topBar">
+            <div id="clockText"></div>
+        </div>
         <canvas id="clockAnim"></canvas>
     </div>
     -->
     <div class="container">
         <div class="row text-center">
             <span id="clockText"></span>
-            </div>
+        </div>
         <div class="row">
-            <canvas id="clockAnim" class="center-block"></canvas>
+            <canvas id="clockAnim" class="center-block" width="300" height="300"></canvas>
         </div>
         <div class="row text-center">
             <button id="toggleAlarms"><i class="glyphicon glyphicon-bell"></i></button>
@@ -30,7 +30,7 @@
         </div>
         <div class="row">
             <div class="center-block">
-                <table class="margin-auto">
+                <table class="margin-auto alarms">
                     <thead>
                         <tr>
                             <th>time</th>
@@ -40,13 +40,13 @@
                     </thead>
                     <tbody>
                         <tr class="alarm" data-id="">
-                            <td><input type="text" class="alarmTime"/></td>
-                            <td><input type="text" class="alarmDesc"/></td>
-                            <td><button><i class="glyphicon glyphicon-remove"></i></button></td>
+                            <td><input type="text" class="alarmTime" placeholder="hh:mm"/></td>
+                            <td><input type="text" class="alarmDesc" placeholder="description"/></td>
+                            <td><button class="removeAlarm"><i class="glyphicon glyphicon-remove"></i></button></td>
                         </tr>
                     </tbody>
-                </table>              
-            </div>            
+                </table>
+            </div>
         </div>
     </div>
 </body>

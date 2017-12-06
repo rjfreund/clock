@@ -1,24 +1,24 @@
 define(function(require){
-    var moment = require('./moment');
-    var Alarm = require('./alarm');
-    var adler32StringToHash = require('./adler32');
-    var getLineNumber = require('./getLineNumber');
+var moment = require('./moment');
+var Alarm = require('./alarm');
+var getIdByCodeLoc = require('./getIdByCodeLoc');
+var extend = require('./extend');
+var nodeRefs = require('./references');
 
-    return function Clock(){
-        var framesPerSecond = 60;            
-        var degreesPerSecond = 360/60;
-        var degreesPerMilli = 360/(60 * 1000); //1000 mili per second
-        var alarms = [];
-        var interval = null;
-        var isIntervalMode;
-        var allAlarmsDisplayed = false;
-        var textDestinations = [];
-        var displayDestinations = [];
-        var alarmDestinations = [];
-        var templates = {};
-        var snoozeDuration = 5; //5 minutes
-        var xCenter;
-        var yCenter;
+return function Clock(){
+    var framesPerSecond = 60;
+    var degreesPerSecond = 360/60;
+    var degreesPerMilli = 360/(60 * 1000); //1000 mili per second
+    var alarms = [];
+    var interval = null;
+    var isIntervalMode;
+    var areAlarmsDisplayed = false;
+    var textDestinations = [];
+    var displayDestinations = [];
+    var alarmDestinations = [];
+    var snoozeDuration = 5; //5 minutes
+    var xCenter;
+    var yCenter;
 
     function start(){
         if (isIntervalMode){
@@ -28,9 +28,17 @@ define(function(require){
         startReqAnimMode();
     }
 
-    function stop(){        
-      clearTimeout(interval);
-      isIntervalMode = false;
+    function stop(){
+        clearTimeout(interval);
+        isIntervalMode = false;
+    }
+
+    //TODO: rename this thing to something better
+    function doWork(){ //not really sure what to name this?
+        checkAlarms();
+        displayText();
+        displayDraw();
+        displayAlarms();
     }
 
     function startIntervalMode(){
@@ -41,42 +49,35 @@ define(function(require){
         interval = setInterval(function(){
             doWork();
         }, intervalTime);
-    }  
+    }
 
     function isMobile(){
         return window.innerWidth <= 800;
     }
 
     function stopIntervalMode(){
-        isIntervalMode = false;        
+        isIntervalMode = false;
         clearInterval(interval);
-    }    
+    }
 
     function startReqAnimMode(prevTimeInMs){
         if (isIntervalMode){ return; }
-        stopIntervalMode();        
+        stopIntervalMode();
         var nowInMs = performance.now();
         /*  don't really need to track movement of characters in this program based on framerate or time,
             but I'm going to keep this here as a reference:
             - keep track of how many milliseconds since last requestAnimationFrame
             - animate character based off of how much time passed
         */
-        var changeInMs = nowInMs - prevTimeInMs;                                       
-        doWork();        
+        var changeInMs = nowInMs - prevTimeInMs;
+        doWork();
         requestAnimationFrame(startReqAnimMode);
     }
 
     function stopReqAnimMode(){
-        isIntervalMode = true;        
+        isIntervalMode = true;
     }
-        
-    //TODO: rename this thing to something better
-    function doWork(){ //not really sure what to name this?
-        checkAlarms();
-        displayText();
-        //displayDraw();
-        displayAlarms();           
-    }
+
 
     function displayText(){
         for(var i = 0; i < textDestinations.length; i++){
@@ -86,61 +87,36 @@ define(function(require){
     }
 
     function displayDraw(){
-        for(var k = 0; k < displayDestinations.length; k++){              
-            var ctx = displayDestinations[k].getContext("2d");                             
+        for(var k = 0; k < displayDestinations.length; k++){
+            var ctx = displayDestinations[k].getContext("2d");
             setCanvasDim(ctx);
             drawClock(ctx);
             drawToFavicon(ctx);
-        } 
+        }
     }
 
     function displayAlarms(){
         if (alarmDestinations.length == 0){ return; }
-        if (alarms.length == 0){ return; }
-        if (allAlarmsDisplayed){ return; }
-        var templateKey = getLineNumber(this);
-        var copyNode;
-        var parentNode;
+        if (areAlarmsDisplayed){ return; }
+        var templateNodeId = getIdByCodeLoc(this);
+        var parentNodeId = getIdByCodeLoc(this);
         for (var i = 0; i < alarmDestinations.length; i++){
             var alarmDestination = alarmDestinations[i];
-            for (var k = 0; k < alarms.length; k++){                
-                if (!templates[templateKey]){
-                    templates[templateKey] = alarmDestination.cloneNode(true);
-                    parentNode = alarmDestination.parentNode;                    
-                }
-                if (alarms.find(function(alarm){ return displayId == alarm.id; })){
-                    continue;
-                } 
-                copyNode = templates[templateKey].cloneNode(true);                    
+            if (!nodeRefs[templateNodeId]){ nodeRefs[templateNodeId] = alarmDestination.cloneNode(true); }
+            if (!nodeRefs[parentNodeId]){ nodeRefs[parentNodeId] = alarmDestination.parentNode; }
+            while (nodeRefs[parentNodeId].hasChildNodes()){ nodeRefs[parentNodeId].removeChild(nodeRefs[parentNodeId].lastChild); }
+            for (var k = 0; k < alarms.length; k++){
+                copyNode = nodeRefs[templateNodeId].cloneNode(true);
                 copyNode.setAttribute('data-id', alarms[k].id);
                 copyNode.getElementsByTagName('input')[0].value = alarms[k].time;
-                copyNode.getElementsByTagName('input')[1].value = alarms[k].desc;                
-                parentNode.appendChild(copyNode);
+                copyNode.getElementsByTagName('input')[1].value = alarms[k].desc;
+                nodeRefs[parentNodeId].appendChild(copyNode);
             }
-        }    
-        allAlarmsDisplayed = true;        
-        
-        /*
-        for (var i = 0; i < alarmDestinations.length; i++){
-            if (alarmDestinations[i].parentNode.children.length >= alarms.length){ break; }//alarms already loaded
-            var alarmDestination = alarmDestinations[i];
-            
-            //var lastChildIndex = alarmDestination.parentNode.children.length-1;
-            //var dupNode = alarmDestination.parentNode.children[lastChildIndex].cloneNode(true);
-            //var parent = alarmDestination.parentNode;
-            
-            for(var k = 0; k < alarms.length; k++){                
-                if (alarmDestination.getAttribute('data-id') == alarms[k].id.toString()){ continue; }
-                var lastChildIndex = alarmDestination.parentNode.children.length-1;
-                var dupNode = alarmDestination.parentNode.children[lastChildIndex].cloneNode(true);
-                alarmDestination.setAttribute('data-id', alarms[k].id);
-                alarmDestination.getElementsByTagName('input')[0].value = alarms[k].time;
-                alarmDestination.getElementsByTagName('input')[1].value = alarms[k].desc;                                
-                if (k == alarms.length-1){ return; }
-                alarmDestination.parentNode.append(dupNode);
-                alarmDestination = dupNode;
-            }
-        }*/
+            if (alarms.length != 0){ continue; }
+            copyNode = nodeRefs[templateNodeId].cloneNode(true);
+            nodeRefs[parentNodeId].appendChild(copyNode);
+        }
+        areAlarmsDisplayed = true;
     }
 
     function setCanvasDim(ctx){
@@ -153,79 +129,88 @@ define(function(require){
             return;
         }
         ctx.canvas.width = ctx.canvas.parentElement.clientWidth;
-        ctx.canvas.height = ctx.canvas.width;        
+        ctx.canvas.height = ctx.canvas.width;
     }
-    
+
+    function addAlarm(input){
+        alarms.push(new Alarm(input));
+        areAlarmsDisplayed = false;
+        displayAlarms();
+    };
+
+    function updateAlarm(input, forceRefresh){
+        for(var i = 0; i < alarms.length; i++){
+            if (alarms[i].id != input.id){ continue; }
+            alarms[i] = extend(input, alarms[i]);
+        }
+        if (!forceRefresh){ return; }
+        areAlarmsDisplayed = false;
+        displayAlarms();
+    }
+
+    function removeAlarm(id){
+        for (var i = alarms.length-1; i > -1; i--){
+            if (alarms[i].id != id){ continue; }
+            alarms.splice(i, 1);
+        }
+        areAlarmsDisplayed = false;
+        displayAlarms();
+    };
+
     function checkAlarms(){
         for (var i = 0; i < alarms.length; i++){
-            var alarm = alarms[i];        
-            if (alarm.date){ //remove old alarms (before today)
-                if (moment(alarm.date).isBefore(moment().format("MM-DD-YYYY")) ||
-                    moment(alarm.date).isBefore(moment().format("YYYY-MM-DD"))
-                ){
-                    removeAlarm(i);
-                }
-            }
-            var now = moment().format('h:mm');        
-            if (alarm.time !== now){ continue; }
+            var alarm = alarms[i];
+            var now = moment().format('hh:mm:ss');
+            var alarmTime = moment(moment().format('YYYY-MM-DD') + " " + alarm.time).format('hh:mm:ss');
+            if (alarmTime != now){ continue; }
             var message = alarm.time + ": " + alarm.desc + "\n\n Cancel will snooze for " + snoozeDuration + " minutes";
-            if(!confirm(message)){
-                //snooze for 5 minutes
-                var newTime = moment().minute() + 5;
-                removeAlarm(i);
-                addAlarm(newTime, alarm.desc)
-                continue;
-            };
-            removeAlarm(i);
+            if(confirm(message)){ continue; }
+            //snooze for 5 minutes
+            var newTime = moment().add(5, 'minutes').format('hh:mm');
+            updateAlarm({id: alarm.id, time: newTime}, true);
         }
     };
-    
+
     function setTextDestinations(inputTextDestinations){
-      if (!Array.isArray(inputTextDestinations)){ console.error("Text destinations must be array;"); return; }
-      for (var i = 0; i < inputTextDestinations.length; i++){
+        if (!Array.isArray(inputTextDestinations)){ console.error("Text destinations must be array;"); return; }
+        for (var i = 0; i < inputTextDestinations.length; i++){
         textDestinations.push(inputTextDestinations[i]);
-      }
+        }
     };
     function setDrawDestinations(inputDisplayDestinations){
-      if (!Array.isArray(inputDisplayDestinations)){ console.error("Draw destinations must be array;"); return; }
-      for (var i = 0; i < inputDisplayDestinations.length; i++){
+        if (!Array.isArray(inputDisplayDestinations)){ console.error("Draw destinations must be array;"); return; }
+        for (var i = 0; i < inputDisplayDestinations.length; i++){
         displayDestinations.push(inputDisplayDestinations[i]);
-      }
+        }
     };
 
     function setAlarmDestionations(inputAlarmDestinations){
         inputAlarmDestinations = [].slice.call(inputAlarmDestinations); // nodelist to array
-        if(!Array.isArray(inputAlarmDestinations)){ console.error("Alarm destinations must be array;"); return; }        
+        if(!Array.isArray(inputAlarmDestinations)){ console.error("Alarm destinations must be array;"); return; }
         for (var i = 0; i < inputAlarmDestinations.length; i++){
             alarmDestinations.push(inputAlarmDestinations[i]);
         }
     }
 
-    function addAlarm(input){ 
-        alarms.push(new Alarm(input));
-        allAlarmsDisplayed = false;
-        displayAlarms();
-    };
-    function removeAlarm(i){ alarms.splice(i, 1); };
-    function getTime(){ return moment().format('hh:mm:ss.S A'); };    
+    function getTime(){ return moment().format('hh:mm:ss.S A'); };
 
-    function drawClock(ctx) {        
+    function drawClock(ctx) {
         xCenter = ctx.canvas.width/2;
         yCenter = ctx.canvas.height/2;
         var outerRingWidth = (ctx.canvas.height/2)*0.1;
         var radius = (ctx.canvas.height - outerRingWidth)/2;
         drawFace(ctx, radius, outerRingWidth);
         drawNumbers(ctx, radius);
-        drawTime(ctx, radius);                 
+        drawTime(ctx, radius);
     }
 
     function drawFace(ctx, radius, outerRingWidth) {
         var grad;
-        ctx.beginPath();        
-        ctx.arc(xCenter, yCenter, radius, 0, 2*Math.PI);  
+        ctx.beginPath();
+        ctx.arc(xCenter, yCenter, radius, 0, 2*Math.PI);
         ctx.fillStyle = 'white';
-        ctx.fill();  
-        grad = ctx.createRadialGradient(xCenter,yCenter,radius*0.30, xCenter,yCenter,radius*0.4);  
+        ctx.fill();
+        grad = ctx.createRadialGradient(xCenter,yCenter,radius*0.30, xCenter,yCenter,radius*0.4);
         grad.addColorStop(0, '#333');
         grad.addColorStop(0.5, 'white');
         grad.addColorStop(1, '#333');
@@ -235,59 +220,59 @@ define(function(require){
         ctx.beginPath();
         ctx.arc(xCenter, yCenter, outerRingWidth, 0, 2*Math.PI);
         ctx.fillStyle = '#333';
-        ctx.fill();    
+        ctx.fill();
     }
 
-    function drawNumbers(ctx, radius) {        
+    function drawNumbers(ctx, radius) {
         var angle;
-        var i;                
+        var i;
         ctx.font = radius*0.15 + "px arial";
         ctx.textBaseline="middle";
-        ctx.textAlign="center";                
-        for(i = 1; i <= 12; i++){                       
+        ctx.textAlign="center";
+        for(i = 1; i <= 12; i++){
             var angle = degreeToRadians(i * 30 - 90); //have to subtract 90 degrees because the usual 0,0 starts at the 3 o'clock position stead of 12
             var degrees = radianToDegrees(angle);
-            var length = radius*0.85;                                                                    
+            var length = radius*0.85;
             var xPoint = xCenter + (length * Math.cos(angle));//get dest x point from orig x = 0
             var yPoint = yCenter + (length * Math.sin(angle));//get dest y point from orig y = 0
-            ctx.fillText(i.toString(), xPoint, yPoint);                                    
+            ctx.fillText(i.toString(), xPoint, yPoint);
         }
     }
 
     function drawTime(ctx, radius){
-        var now = moment();                                   
+        var now = moment();
         drawSecondHand(ctx, radius, now);
         drawMinuteHand(ctx, radius, now);
-        drawHourHand(ctx, radius, now);        
+        drawHourHand(ctx, radius, now);
     }
 
     function drawSecondHand(ctx, radius, now){
-        var second = now.second();                          
-        var ms = now.millisecond(); //0.000            
+        var second = now.second();
+        var ms = now.millisecond(); //0.000
 
         var secondHandAngle = degreeToRadians(
-            second * degreesPerSecond + 
+            second * degreesPerSecond +
             ms * degreesPerMilli
         );
-        drawHand(ctx, secondHandAngle, radius*0.85, radius*0.02, "red"); 
+        drawHand(ctx, secondHandAngle, radius*0.85, radius*0.02, "red");
     }
 
     function drawMinuteHand(ctx, radius, now){
-        var minute = now.minute(); 
+        var minute = now.minute();
         var second = now.second();
         var degreesPerMinute = 360/60;
-        
+
         //var minuteHandAngle=(minute*Math.PI/30)+(second*Math.PI/(30*60));
         var minuteHandAngle= degreeToRadians(
-            minute * degreesPerMinute + 
+            minute * degreesPerMinute +
             second * degreesPerSecond / 60
-        ); //move minute hand tiny 1 per second        
+        ); //move minute hand tiny 1 per second
         drawHand(ctx, minuteHandAngle, radius*.85, radius*0.09, "black");
     }
 
     function drawHourHand(ctx, radius, now){
-        var hour = now.hour() <= 12 ? now.hour() : now.hour() - 12; 
-        var minute = now.minute();                   
+        var hour = now.hour() <= 12 ? now.hour() : now.hour() - 12;
+        var minute = now.minute();
         var minutesSinceTwelve = 60 * hour + minute;
 
         //var hourHand =  (hour*Math.PI/6)+(minute*Math.PI/(6*60))+(second*Math.PI/(360*60));
@@ -295,10 +280,10 @@ define(function(require){
         drawHand(ctx, hourHandAngle, radius*.5, radius*0.09, "black");
     }
 
-    function drawHand(ctx, angle, length, width, color) {   
+    function drawHand(ctx, angle, length, width, color) {
         ctx.save();
         ctx.beginPath();
-        ctx.translate(xCenter, yCenter);             
+        ctx.translate(xCenter, yCenter);
         ctx.lineWidth = width;
         ctx.lineCap = "round";
         ctx.moveTo(0,0);
@@ -311,7 +296,7 @@ define(function(require){
     }
 
     function radianToDegrees(radian){
-        //1 radian = 180 / Math.PI degrees (57.295779513082320876798154814105) 
+        //1 radian = 180 / Math.PI degrees (57.295779513082320876798154814105)
         var degree = radian * 180.0 / Math.PI;
         return degree;
     }
@@ -322,9 +307,9 @@ define(function(require){
         return radians;
     }
 
-    function drawToFavicon(ctx){                
+    function drawToFavicon(ctx){
         var link = document.getElementById('favicon');
-        link.href = ctx.canvas.toDataURL('image/png');                                                  
+        link.href = ctx.canvas.toDataURL('image/png');
     }
 
     return {
@@ -335,6 +320,7 @@ define(function(require){
         setDrawDestinations: setDrawDestinations,
         setAlarmDestionations: setAlarmDestionations,
         addAlarm: addAlarm,
+        updateAlarm: updateAlarm,
         removeAlarm: removeAlarm,
         getTime: getTime,
         drawClock: drawClock,
@@ -343,7 +329,7 @@ define(function(require){
         startReqAnimMode: startReqAnimMode,
         stopReqAnimMode: stopReqAnimMode
     };
-    
-  };
+
+}
 
 });

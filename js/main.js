@@ -1,22 +1,41 @@
 require(['clock'], function main(Clock){
-	
 
-	var clock = new Clock();
-	clock.addAlarm({ time:'12:29', desc:'facebook live'});
-	clock.addAlarm({ time:'03:28', desc:'Winnebago'});
-	clock.setTextDestinations([
-		{ target: window.document, attr: 'title'}, 
-		{ target: document.getElementById('clockText'), attr: 'innerHTML'}
-	]);
-	clock.setDrawDestinations([document.getElementById('clockAnim')]);
-    clock.setAlarmDestionations(document.getElementsByClassName('alarm'));
-	clock.start();
-    
-    document.getElementById('addAlarm').addEventListener('click', function(){
+var clock = new Clock();
+clock.setTextDestinations([
+    { target: window.document, attr: 'title'},
+    { target: document.getElementById('clockText'), attr: 'innerHTML'}
+]);
+clock.setDrawDestinations([document.getElementById('clockAnim')]);
+clock.setAlarmDestionations(document.querySelectorAll('.alarm'));
+clock.start();
+
+//this will listen for events on dynamically created nodes
+document.body.addEventListener('click', function(event){
+    if (event.target.closest('#toggleAlarms')){
+        var alarmLists = document.querySelectorAll('.alarms');
+        for (var i = 0; i < alarmLists.length; i++){
+            alarmLists[i].style.display = alarmLists[i].style.display == '' ? 'none' : '';
+        }
+    } else if (event.target.closest('#addAlarm')){ //this or ancestors have #addAlarm
         clock.addAlarm();
-    });
-    window.addEventListener('blur', function(){ clock.stopReqAnimMode(); clock.startIntervalMode(); });
-    window.addEventListener('focus', function(){ clock.stopIntervalMode(); clock.startReqAnimMode(); });    
+    } else if (event.target.closest('.removeAlarm')){
+        clock.removeAlarm(event.target.closest('.alarm').getAttribute('data-id'));
+    }
+});
+
+document.body.addEventListener('input', function(event){
+    if (event.target.classList.contains('alarmTime')){
+        var id = event.target.closest('.alarm').getAttribute('data-id');
+        clock.updateAlarm({id: id, time: event.target.value});
+    } else if (event.target.classList.contains('alarmDesc')){
+        var id = event.target.closest('.alarm').getAttribute('data-id');
+        clock.updateAlarm({id: id, desc: event.target.value});
+    }
+});
+
+window.addEventListener('blur', function(){ clock.stopReqAnimMode(); clock.startIntervalMode(); });
+window.addEventListener('focus', function(){ clock.stopIntervalMode(); clock.startReqAnimMode(); });
+
 });
 
 
