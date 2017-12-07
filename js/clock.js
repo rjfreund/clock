@@ -45,7 +45,7 @@ return function Clock(){
     function startTimeoutMode(){
         stopReqAnimMode();
         isTimeoutMode = true;
-        var tickTime = 5000; //to low of interval time can cause memory leak - canvas draw can't keep up
+        var tickTime = 16.75;
         if (isMobile()){ tickTime =  5000; } //short interval time seems to be too much on mobile devices
         timeout = setTimeout(function(){
             doWork();

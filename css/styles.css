@@ -32,6 +32,14 @@ tr > th, tr > td{
     padding: 0;
 }
 
+.template{
+    display: none;
+}
+
+.templateLoaded{
+    display: auto;
+}
+
 /*
 html, body{
     margin: 0;
