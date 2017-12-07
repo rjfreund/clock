@@ -34,7 +34,7 @@ document.body.addEventListener('input', function(event){
 });
 
 window.addEventListener('blur', function(){ clock.stopReqAnimMode(); clock.startTimeoutMode(); });
-window.addEventListener('focus', function(){ clock.stopIntervalMode(); clock.startReqAnimMode(); });
+window.addEventListener('focus', function(){ clock.stopTimeoutMode(); clock.startReqAnimMode(); });
 
 });
 
