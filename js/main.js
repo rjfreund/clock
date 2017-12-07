@@ -1,5 +1,12 @@
 require(['clock'], function main(Clock){
 
+//to prevent empty templates showing up
+var templates = document.querySelectorAll('.template');
+for (var i = 0; i < templates.length; i++){
+    templates[i].classList.remove('template');
+    templates[i].classList.add('templateLoaded');
+}
+
 var clock = new Clock();
 clock.setTextDestinations([
     { target: window.document, attr: 'title'},
@@ -35,13 +42,6 @@ document.body.addEventListener('input', function(event){
 
 window.addEventListener('blur', function(){ clock.stopReqAnimMode(); clock.startTimeoutMode(); });
 window.addEventListener('focus', function(){ clock.stopTimeoutMode(); clock.startReqAnimMode(); });
-
-//to prevent empty templates showing up
-var templates = document.querySelectorAll('.template');
-for (var i = 0; i < templates.length; i++){
-    templates[i].classList.remove('template');
-    templates[i].classList.add('templateLoaded');
-}
 
 });
 
