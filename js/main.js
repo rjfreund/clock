@@ -33,7 +33,7 @@ document.body.addEventListener('input', function(event){
     }
 });
 
-window.addEventListener('blur', function(){ clock.stopReqAnimMode(); clock.startIntervalMode(); });
+window.addEventListener('blur', function(){ clock.stopReqAnimMode(); clock.startTimeoutMode(); });
 window.addEventListener('focus', function(){ clock.stopIntervalMode(); clock.startReqAnimMode(); });
 
 });

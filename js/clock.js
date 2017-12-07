@@ -11,8 +11,8 @@ return function Clock(){
     var degreesPerMilli = 360/(60 * 1000); //1000 mili per second
     var alarmsStorageId = getIdByCodeLoc(this);
     var alarms = JSON.parse(localStorage.getItem(alarmsStorageId)) || [];
-    var interval = null;
-    var isIntervalMode;
+    var timeout = null;
+    var isTimeoutMode;
     var areAlarmsDisplayed = false;
     var textDestinations = [];
     var displayDestinations = [];
@@ -22,16 +22,16 @@ return function Clock(){
     var yCenter;
 
     function start(){
-        if (isIntervalMode){
-            startIntervalMode();
+        if (isTimeoutMode){
+            startTimeoutMode();
             return;
         }
         startReqAnimMode();
     }
 
     function stop(){
-        clearTimeout(interval);
-        isIntervalMode = false;
+        clearTimeout(timeout);
+        isTimeoutMode = false;
     }
 
     //TODO: rename this thing to something better
@@ -42,24 +42,25 @@ return function Clock(){
         displayAlarms();
     }
 
-    function startIntervalMode(){
+    function startTimeoutMode(){
         stopReqAnimMode();
-        isIntervalMode = true;
-        var intervalTime = 5000; //to low of interval time can cause memory leak - canvas draw can't keep up
-        if (isMobile()){ intervalTime =  5000; } //short interval time seems to be too much on mobile devices
-        interval = setInterval(function(){
+        isTimeoutMode = true;
+        var tickTime = 5000; //to low of interval time can cause memory leak - canvas draw can't keep up
+        if (isMobile()){ tickTime =  5000; } //short interval time seems to be too much on mobile devices
+        timeout = setTimeout(function(){
             doWork();
-        }, intervalTime);
+            startTimeoutMode();
+        }, tickTime);
     }
 
-    function stopIntervalMode(){
-        isIntervalMode = false;
-        clearInterval(interval);
+    function stopTimeoutMode(){
+        isTimeoutMode = false;        
+        clearTimeout(timeout);
     }
 
     function startReqAnimMode(prevTimeInMs){
-        if (isIntervalMode){ return; }
-        stopIntervalMode();
+        if (isTimeoutMode){ return; }
+        stopTimeoutMode();
         var nowInMs = performance.now();
         /*  don't really need to track movement of characters in this program based on framerate or time,
             but I'm going to keep this here as a reference:
@@ -72,7 +73,7 @@ return function Clock(){
     }
 
     function stopReqAnimMode(){
-        isIntervalMode = true;
+        isTimeoutMode = true;
     }
 
     function isMobile(){
@@ -324,8 +325,8 @@ return function Clock(){
         removeAlarm: removeAlarm,
         getTime: getTime,
         drawClock: drawClock,
-        startIntervalMode: startIntervalMode,
-        stopIntervalMode: stopIntervalMode,
+        startTimeoutMode: startTimeoutMode,
+        stopTimeoutMode: stopTimeoutMode,
         startReqAnimMode: startReqAnimMode,
         stopReqAnimMode: stopReqAnimMode
     };
