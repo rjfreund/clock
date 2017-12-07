@@ -45,7 +45,7 @@ return function Clock(){
     function startIntervalMode(){
         stopReqAnimMode();
         isIntervalMode = true;
-        var intervalTime = 16.75; //60 fps
+        var intervalTime = 5000; //to low of interval time can cause memory leak - canvas draw can't keep up
         if (isMobile()){ intervalTime =  5000; } //short interval time seems to be too much on mobile devices
         interval = setInterval(function(){
             doWork();
@@ -112,11 +112,6 @@ return function Clock(){
                 copyNode.getElementsByTagName('input')[1].value = alarms[k].desc;
                 nodeRefs[parentNodeId].appendChild(copyNode);
             }
-            /*
-            if (alarms.length != 0){ continue; }
-            copyNode = nodeRefs[templateNodeId].cloneNode(true);
-            nodeRefs[parentNodeId].appendChild(copyNode);
-            */
         }
         areAlarmsDisplayed = true;
     }
@@ -234,6 +229,7 @@ return function Clock(){
         ctx.font = radius*0.15 + "px arial";
         ctx.textBaseline="middle";
         ctx.textAlign="center";
+        ctx.beginPath();
         for(i = 1; i <= 12; i++){
             var angle = degreeToRadians(i * 30 - 90); //have to subtract 90 degrees because the usual 0,0 starts at the 3 o'clock position stead of 12
             var degrees = radianToDegrees(angle);
@@ -295,8 +291,7 @@ return function Clock(){
         ctx.rotate(angle);
         ctx.lineTo(0, -length); //have to set negative length here because of rotation or something
         ctx.strokeStyle=color;
-        ctx.stroke();
-        //ctx.rotate(-angle);
+        ctx.stroke();        
         ctx.restore();
     }
 
