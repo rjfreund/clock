@@ -43,6 +43,23 @@ document.body.addEventListener('input', function(event){
 window.addEventListener('blur', function(){ clock.stopReqAnimMode(); clock.startTimeoutMode(); });
 window.addEventListener('focus', function(){ clock.stopTimeoutMode(); clock.startReqAnimMode(); });
 
+document.getElementById("toggleNightStyle").addEventListener('click', function(){
+    var body = document.querySelector('body');
+    var bodyStyles = window.getComputedStyle(body);
+    var lightBackgroundColor = 'rgb(255, 255, 255)';
+    var currBackgroundColor = bodyStyles.getPropertyValue('background-color');
+    var darkBgrdColor = 'rgb(0, 0, 0)'; //black
+    if (currBackgroundColor != darkBgrdColor){
+        body.style.backgroundColor = darkBgrdColor;
+        body.style.color = lightBackgroundColor;
+        clock.setDarkTheme();
+    } else {
+        body.style.backgroundColor = lightBackgroundColor;
+        body.style.color = darkBgrdColor;
+        clock.setLightTheme();
+    }
+});
+
 });
 
 

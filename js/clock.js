@@ -20,6 +20,11 @@ return function Clock(){
     var snoozeDuration = 5; //5 minutes
     var xCenter;
     var yCenter;
+    var fillStyle = 'white';
+    var handColor = 'black';
+    var numberFillStyle = 'black';
+    var outerRingFillStyle = '#333';
+
 
     function start(){
         if (isTimeoutMode){
@@ -209,7 +214,7 @@ return function Clock(){
         var grad;
         ctx.beginPath();
         ctx.arc(xCenter, yCenter, radius, 0, 2*Math.PI);
-        ctx.fillStyle = 'white';
+        ctx.fillStyle = fillStyle;
         ctx.fill();
         grad = ctx.createRadialGradient(xCenter,yCenter,radius*0.30, xCenter,yCenter,radius*0.4);
         grad.addColorStop(0, '#333');
@@ -220,7 +225,7 @@ return function Clock(){
         ctx.stroke();
         ctx.beginPath();
         ctx.arc(xCenter, yCenter, outerRingWidth, 0, 2*Math.PI);
-        ctx.fillStyle = '#333';
+        ctx.fillStyle = outerRingFillStyle;
         ctx.fill();
     }
 
@@ -230,6 +235,7 @@ return function Clock(){
         ctx.font = radius*0.15 + "px arial";
         ctx.textBaseline="middle";
         ctx.textAlign="center";
+        ctx.fillStyle = numberFillStyle;
         ctx.beginPath();
         for(i = 1; i <= 12; i++){
             var angle = degreeToRadians(i * 30 - 90); //have to subtract 90 degrees because the usual 0,0 starts at the 3 o'clock position stead of 12
@@ -269,7 +275,7 @@ return function Clock(){
             minute * degreesPerMinute +
             second * degreesPerSecond / 60
         ); //move minute hand tiny 1 per second
-        drawHand(ctx, minuteHandAngle, radius*.85, radius*0.09, "black");
+        drawHand(ctx, minuteHandAngle, radius*.85, radius*0.09, handColor);
     }
 
     function drawHourHand(ctx, radius, now){
@@ -279,7 +285,7 @@ return function Clock(){
 
         //var hourHand =  (hour*Math.PI/6)+(minute*Math.PI/(6*60))+(second*Math.PI/(360*60));
         var hourHandAngle = degreeToRadians(0.5 * minutesSinceTwelve);
-        drawHand(ctx, hourHandAngle, radius*.5, radius*0.09, "black");
+        drawHand(ctx, hourHandAngle, radius*.5, radius*0.09, handColor);
     }
 
     function drawHand(ctx, angle, length, width, color) {
@@ -313,6 +319,20 @@ return function Clock(){
         link.href = ctx.canvas.toDataURL('image/png');
     }
 
+    function setDarkTheme(){
+        fillStyle = 'black';
+        handColor = 'white';
+        numberFillStyle = 'white';
+        outerRingFillStyle = '#333';
+    }
+
+    function setLightTheme(){
+        fillStyle = 'white';
+        handColor = 'black';
+        numberFillStyle = 'black';
+        outerRingFillStyle = '#333';
+    }
+
     return {
         start: start,
         stop: stop,
@@ -328,7 +348,9 @@ return function Clock(){
         startTimeoutMode: startTimeoutMode,
         stopTimeoutMode: stopTimeoutMode,
         startReqAnimMode: startReqAnimMode,
-        stopReqAnimMode: stopReqAnimMode
+        stopReqAnimMode: stopReqAnimMode,
+        setDarkTheme: setDarkTheme,
+        setLightTheme: setLightTheme
     };
 
 }
